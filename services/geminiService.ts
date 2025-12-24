@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { MarketReport } from "../types";
+import { MarketReport } from "../types.ts";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
