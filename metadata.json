@@ -1,0 +1,5 @@
+{
+  "name": "Media Drive: Market Reporter",
+  "description": "A clean utility tool for media buyers to generate AI-powered one-pagers on US markets and ZIP codes, focusing on demographics, transit, political leaning, and industry trends.",
+  "requestFramePermissions": []
+}
