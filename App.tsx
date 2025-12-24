@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { 
   BarChart3, 
-  Map as MapIcon, 
   Users, 
   Briefcase, 
   Train, 
@@ -14,7 +13,6 @@ import {
   ChevronDown,
   ChevronUp,
   Download,
-  Zap,
   Activity,
   Smartphone
 } from 'lucide-react';
@@ -26,6 +24,7 @@ import { generateMarketReport } from './services/geminiService';
 import { MarketReport, GenerationState } from './types';
 import { StatBox, SectionHeader, Tag, UtilityButton, DemographicBar } from './components/UIComponents';
 import { US_MARKETS } from './data/markets';
+import { DETROIT_REPORT } from './data/detroitData';
 
 const App: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
@@ -128,7 +127,10 @@ const App: React.FC = () => {
 
   const loadExample = () => {
     setInputValue("Detroit, MI");
-    handleGenerate("Detroit, MI");
+    // Use hardcoded data for Detroit to ensure speed and reliability for the demo
+    setReport(DETROIT_REPORT);
+    setStatus({ isLoading: false, error: null, hasGenerated: true });
+    setIsExpanded(true); // Auto expand for the example
   };
 
   const handleDownloadPDF = async () => {
