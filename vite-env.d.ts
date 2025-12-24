@@ -1,6 +1,4 @@
-// Fixed: Removed reference to vite/client to resolve "Cannot find type definition" error.
-// Added process.env type definition for TypeScript support.
-
+// Augment NodeJS namespace for config files using @types/node
 declare namespace NodeJS {
   interface ProcessEnv {
     API_KEY: string;
