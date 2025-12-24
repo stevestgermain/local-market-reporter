@@ -22,10 +22,10 @@ import {
 import jsPDF from 'jspdf';
 // @ts-ignore
 import html2canvas from 'html2canvas';
-import { generateMarketReport } from './services/geminiService.ts';
-import { MarketReport, GenerationState } from './types.ts';
-import { StatBox, SectionHeader, Tag, UtilityButton, DemographicBar } from './components/UIComponents.tsx';
-import { US_MARKETS } from './data/markets.ts';
+import { generateMarketReport } from './services/geminiService';
+import { MarketReport, GenerationState } from './types';
+import { StatBox, SectionHeader, Tag, UtilityButton, DemographicBar } from './components/UIComponents';
+import { US_MARKETS } from './data/markets';
 
 const App: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
