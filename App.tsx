@@ -36,12 +36,40 @@ const App: React.FC = () => {
   });
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   
   // Autocomplete state
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Dark mode listener - receives theme changes from parent window
+  useEffect(() => {
+    const handleThemeMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'THEME_CHANGE') {
+        setTheme(event.data.theme);
+      }
+    };
+
+    window.addEventListener('message', handleThemeMessage);
+    
+    // Request current theme from parent on mount
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'REQUEST_THEME' }, '*');
+    }
+
+    return () => window.removeEventListener('message', handleThemeMessage);
+  }, []);
+
+  // Apply dark class to document root
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
 
   // Click outside handler to close dropdown
   useEffect(() => {
@@ -173,25 +201,25 @@ const App: React.FC = () => {
   };
 
   return (
-    // 1. Global Layout & Container
-    <div className="w-full min-h-screen bg-[#f9fafb] flex flex-col items-center pt-6 pb-12 px-4">
+    // Global Layout & Container
+    <div className="w-full min-h-screen bg-white dark:bg-black flex flex-col items-center pt-6 pb-12 px-4 transition-colors duration-300">
       <div className="w-full max-w-[460px] mx-auto">
         
-        {/* 2. Signature Header */}
+        {/* Signature Header */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-14 h-14 bg-blue-600 rounded-2xl shadow-lg shadow-blue-600/10 mb-5 text-white flex items-center justify-center transform -rotate-6 hover:scale-105 duration-300">
+          <div className="w-14 h-14 bg-blue-600 dark:bg-blue-500 rounded-2xl shadow-lg shadow-blue-600/10 dark:shadow-blue-500/20 mb-5 text-white flex items-center justify-center transform -rotate-6 hover:scale-105 duration-300">
             <BarChart3 className="w-7 h-7" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-3 tracking-tight">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3 tracking-tight">
             Local Market Reporter
           </h1>
-          <p className="text-[13px] text-gray-500 max-w-[420px] mx-auto font-normal leading-relaxed">
+          <p className="text-[13px] text-gray-500 dark:text-gray-400 max-w-[420px] mx-auto font-normal leading-relaxed">
             AI-powered market intelligence. Demographics, household data, and strategic insights for media buyers.
           </p>
         </div>
 
-        {/* 3. Main Toolbox Card */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-200 p-6 relative overflow-visible transition-all duration-500">
+        {/* Main Toolbox Card */}
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-xl shadow-gray-200/50 dark:shadow-black/50 border border-gray-200 dark:border-zinc-800 p-6 relative overflow-visible transition-all duration-500">
           
           {/* Input Area */}
           <form onSubmit={handleSubmit} className="mb-6 relative">
@@ -204,23 +232,23 @@ const App: React.FC = () => {
                 onKeyDown={handleKeyDown}
                 onFocus={() => { if(inputValue) setShowSuggestions(true); }}
                 disabled={status.isLoading}
-                className="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-gray-200 bg-gray-50 text-gray-900 text-base placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 disabled:opacity-70"
+                className="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white text-base placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-200 disabled:opacity-70"
               />
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5 group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400 transition-colors" />
 
               {/* Autocomplete Dropdown */}
               {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-gray-100 shadow-xl shadow-gray-200/50 z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 shadow-xl shadow-gray-200/50 dark:shadow-black/50 z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
                   {suggestions.map((market, index) => (
                     <button
                       key={index}
                       type="button"
                       onClick={() => handleSelectSuggestion(market, true)}
-                      className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-gray-50 last:border-0 flex items-center gap-2
-                        ${index === activeIndex ? 'bg-gray-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'}
+                      className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-gray-50 dark:border-zinc-700 last:border-0 flex items-center gap-2
+                        ${index === activeIndex ? 'bg-gray-50 dark:bg-zinc-700 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700 hover:text-blue-600 dark:hover:text-blue-400'}
                       `}
                     >
-                      <MapPin className={`w-3.5 h-3.5 ${index === activeIndex ? 'text-blue-500' : 'text-gray-400'}`} />
+                      <MapPin className={`w-3.5 h-3.5 ${index === activeIndex ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`} />
                       {market}
                     </button>
                   ))}
@@ -241,15 +269,15 @@ const App: React.FC = () => {
           {/* Loading State */}
           {status.isLoading && (
             <div className="py-12 flex flex-col items-center justify-center text-center animate-in fade-in duration-300">
-              <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-4" />
-              <p className="text-sm text-gray-500 font-medium">Analyzing Demographics...</p>
-              <p className="text-xs text-gray-400 mt-1">Building report for {inputValue}</p>
+              <Loader2 className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin mb-4" />
+              <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Analyzing Demographics...</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Building report for {inputValue}</p>
             </div>
           )}
 
           {/* Error State */}
           {status.error && (
-            <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-2xl text-sm text-center mb-4">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-600 dark:text-red-400 p-4 rounded-2xl text-sm text-center mb-4 transition-colors duration-300">
               {status.error}
             </div>
           )}
@@ -258,12 +286,12 @@ const App: React.FC = () => {
           {report && !status.isLoading && (
             <div className="animate-in slide-in-from-bottom-4 duration-500">
               
-              <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-4">
+              <div className="flex justify-between items-center mb-4 border-b border-gray-100 dark:border-zinc-800 pb-4">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">{report.marketName}</h2>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">{report.marketName}</h2>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] font-bold text-white bg-blue-600 px-1.5 py-0.5 rounded uppercase">{report.locationType}</span>
-                    <p className="text-[11px] text-gray-400 font-medium tracking-wide">MARKET OVERVIEW</p>
+                    <span className="text-[10px] font-bold text-white bg-blue-600 dark:bg-blue-500 px-1.5 py-0.5 rounded uppercase">{report.locationType}</span>
+                    <p className="text-[11px] text-gray-400 dark:text-gray-500 font-medium tracking-wide">MARKET OVERVIEW</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -277,7 +305,7 @@ const App: React.FC = () => {
               </div>
 
               {/* Map Visual */}
-              <div className="w-full h-40 bg-gray-100 rounded-2xl overflow-hidden mb-6 border border-gray-200 relative group">
+              <div className="w-full h-40 bg-gray-100 dark:bg-zinc-800 rounded-2xl overflow-hidden mb-6 border border-gray-200 dark:border-zinc-700 relative group transition-colors duration-300">
                 <iframe 
                   width="100%" 
                   height="100%" 
@@ -289,7 +317,7 @@ const App: React.FC = () => {
                   className="w-full h-full opacity-90 group-hover:opacity-100 transition-opacity"
                   title="Market Map"
                 ></iframe>
-                <div className="absolute bottom-2 right-2 bg-white/90 px-2 py-1 rounded text-[10px] font-bold text-gray-500 pointer-events-none">
+                <div className="absolute bottom-2 right-2 bg-white/90 dark:bg-zinc-800/90 px-2 py-1 rounded text-[10px] font-bold text-gray-500 dark:text-gray-400 pointer-events-none">
                   MAP VIEW
                 </div>
               </div>
@@ -304,11 +332,11 @@ const App: React.FC = () => {
 
               {/* Top Line Insights */}
               <SectionHeader title="Top Line Insights" icon={Lightbulb} />
-              <div className="bg-amber-50/50 p-4 rounded-2xl border border-amber-100 mb-6">
+              <div className="bg-amber-50/50 dark:bg-amber-900/20 p-4 rounded-2xl border border-amber-100 dark:border-amber-800 mb-6 transition-colors duration-300">
                 <ul className="space-y-2">
                   {report.topLineInsights.map((insight, idx) => (
-                    <li key={idx} className="flex gap-2 text-[13px] text-gray-700 leading-relaxed font-medium">
-                      <span className="text-amber-500 mt-1">•</span>
+                    <li key={idx} className="flex gap-2 text-[13px] text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
+                      <span className="text-amber-500 dark:text-amber-400 mt-1">•</span>
                       {insight}
                     </li>
                   ))}
@@ -319,7 +347,7 @@ const App: React.FC = () => {
               {!isExpanded && (
                  <button 
                   onClick={() => setIsExpanded(true)}
-                  className="w-full py-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 flex items-center justify-center gap-2 transition-all"
+                  className="w-full py-3 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 border border-gray-200 dark:border-zinc-700 rounded-xl text-xs font-semibold text-gray-600 dark:text-gray-300 flex items-center justify-center gap-2 transition-all"
                  >
                    <span>View Full Demographic Report</span>
                    <ChevronDown className="w-3.5 h-3.5" />
@@ -332,31 +360,31 @@ const App: React.FC = () => {
                   
                   {/* Demographics Detail Grid */}
                   <SectionHeader title="Demographic Breakdown" icon={Users} />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-200 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 dark:bg-zinc-800 p-4 rounded-2xl border border-gray-200 dark:border-zinc-700 mb-4 transition-colors duration-300">
                     
                     {/* Age Column */}
                     <div>
-                      <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Age Structure</h4>
+                      <h4 className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Age Structure</h4>
                       {report.ageBreakdown.map((item, i) => (
-                        <DemographicBar key={i} label={item.label} percentage={item.percentage} colorClass="bg-blue-500" />
+                        <DemographicBar key={i} label={item.label} percentage={item.percentage} colorClass="bg-blue-500 dark:bg-blue-400" />
                       ))}
                     </div>
 
                     {/* Ethnicity Column */}
                     <div>
-                      <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Ethnicity</h4>
+                      <h4 className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Ethnicity</h4>
                       {report.ethnicityBreakdown.map((item, i) => (
-                        <DemographicBar key={i} label={item.label} percentage={item.percentage} colorClass="bg-indigo-500" />
+                        <DemographicBar key={i} label={item.label} percentage={item.percentage} colorClass="bg-indigo-500 dark:bg-indigo-400" />
                       ))}
                     </div>
                   </div>
 
                   <SectionHeader title="Media Consumption" icon={Smartphone} />
-                  <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 mb-6">
+                  <div className="bg-blue-50/50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800 mb-6 transition-colors duration-300">
                     <ul className="space-y-2">
                       {report.mediaUsage.map((item, idx) => (
-                        <li key={idx} className="flex gap-2 text-[13px] text-gray-700 leading-relaxed font-medium">
-                          <span className="text-blue-500 mt-1">✓</span>
+                        <li key={idx} className="flex gap-2 text-[13px] text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
+                          <span className="text-blue-500 dark:text-blue-400 mt-1">✓</span>
                           {item}
                         </li>
                       ))}
@@ -385,14 +413,14 @@ const App: React.FC = () => {
                   </div>
 
                   <SectionHeader title="Transit & Mobility" icon={Train} />
-                  <p className="text-[13px] text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-2xl border border-gray-200 mb-6">
+                  <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-relaxed bg-gray-50 dark:bg-zinc-800 p-3 rounded-2xl border border-gray-200 dark:border-zinc-700 mb-6 transition-colors duration-300">
                     {report.transitHabits}
                   </p>
 
                   <button 
                     onClick={handleDownloadPDF}
                     disabled={isDownloading}
-                    className="w-full py-3 mb-3 bg-blue-600 hover:bg-blue-700 border border-transparent rounded-xl text-xs font-semibold text-white flex items-center justify-center gap-2 transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="w-full py-3 mb-3 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 border border-transparent rounded-xl text-xs font-semibold text-white flex items-center justify-center gap-2 transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {isDownloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
                     <span>Download PDF Market Report</span>
@@ -400,7 +428,7 @@ const App: React.FC = () => {
 
                   <button 
                     onClick={() => setIsExpanded(false)}
-                    className="w-full py-3 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-500 flex items-center justify-center gap-2 transition-all"
+                    className="w-full py-3 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 border border-gray-200 dark:border-zinc-700 rounded-xl text-xs font-semibold text-gray-500 dark:text-gray-400 flex items-center justify-center gap-2 transition-all"
                   >
                     <span>Collapse Report</span>
                     <ChevronUp className="w-3.5 h-3.5" />
@@ -412,7 +440,7 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {/* HIDDEN PDF TEMPLATE */}
+      {/* HIDDEN PDF TEMPLATE - Keep as-is for PDF generation */}
       {report && (
         <div 
            id="pdf-report-template" 
